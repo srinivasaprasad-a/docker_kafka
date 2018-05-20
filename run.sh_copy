@@ -1,0 +1,28 @@
+sudo docker network rm -f kafka-network &> /dev/null
+sudo docker network create \
+		--driver bridge \
+		kafka-network &> /dev/null
+
+echo "start zookeeper container..."
+sudo docker rm -f zookeeper-host &> /dev/null
+sudo docker run -itd \
+		-p 2181:2181 \
+		--net=kafka-network \
+		--ip 172.22.0.2 \
+		--add-host kafka-host:172.22.0.3 \
+		--name zookeeper-host \
+		--hostname zookeeper-host \
+		docker_zookeeper:latest &> /dev/null
+echo "done."
+
+echo "start kafka container..."
+sudo docker rm -f kafka-host &> /dev/null
+sudo docker run -itd \
+		-p 9092:9092 \
+		--net=kafka-network \
+		--ip 172.22.0.3 \
+		--add-host zookeeper-host:172.22.0.2 \
+                --name kafka-host \
+                --hostname kafka-host \
+		docker_kafka:latest &> /dev/null
+echo "done."
